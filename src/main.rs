@@ -82,9 +82,26 @@ impl Board {
                 if let Some(new_square) = valid_square {
                     if self.pieces[new_square.file_index][new_square.rank_index].is_none() {
                         moves.push(Move {
-                            from: square,
+                            from: square.clone(),
                             to: new_square,
                         });
+                    }
+                }
+
+                // Check if we can take a piece diagonally
+                for file_offset in (-1..=1).step_by(2) {
+                    let valid_square = self.validate_square_offset(&square, file_offset, forward);
+                    if let Some(new_square) = valid_square {
+                        if let Some(taken_piece) =
+                            self.pieces[new_square.file_index][new_square.rank_index]
+                        {
+                            if taken_piece.color != piece.color {
+                                moves.push(Move {
+                                    from: square.clone(),
+                                    to: new_square,
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -177,7 +194,7 @@ impl fmt::Display for Rank {
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 struct Square {
     rank: Rank,
     file: File,
