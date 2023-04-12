@@ -65,6 +65,32 @@ impl Game {
                     }
                 }
             }
+            PieceType::Knight => {
+                for file_offset in -2i8..=2 {
+                    for rank_offset in -2i8..=2 {
+                        if file_offset == 0
+                            || rank_offset == 0
+                            || file_offset.abs() == rank_offset.abs()
+                        {
+                            continue;
+                        }
+                        if let Some(new_square) =
+                            self.board
+                                .validate_square_offset(&square, file_offset, rank_offset)
+                        {
+                            if let Some(taken_piece) = self.board.get(new_square) {
+                                if taken_piece.color == piece.color {
+                                    continue;
+                                }
+                            }
+                            moves.push(Move {
+                                from: square.clone(),
+                                to: new_square,
+                            });
+                        }
+                    }
+                }
+            }
             _ => (),
         }
         moves
