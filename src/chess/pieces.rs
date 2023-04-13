@@ -140,7 +140,27 @@ impl Piece {
     }
 
     fn get_king_moves(&self, board: &Board, from_square: &Square) -> Vec<Move> {
-        Vec::new()
+        let mut moves = Vec::new();
+        // Check every square in a 3x3 box around the king
+        for file_offset in -1i8..=1 {
+            for rank_offset in -1i8..=1 {
+                if file_offset == 0 && rank_offset == 0 {
+                    continue;
+                }
+                if let Some(new_square) =
+                    board.validate_square_offset(from_square, file_offset, rank_offset)
+                {
+                    // We cannot move to a square occupied by one of our own pieces
+                    if let Some(taken_piece) = board.get(new_square) {
+                        if taken_piece.color == self.color {
+                            continue;
+                        }
+                    }
+                    moves.push(move_!(from_square.clone(), new_square));
+                }
+            }
+        }
+        moves
     }
 }
 
