@@ -89,18 +89,18 @@ impl Piece {
         for (file_direction, rank_direction) in directions.iter() {
             // Offsets represent the vector from the starting square
             let (mut file_offset, mut rank_offset) = (*file_direction, *rank_direction);
-            // Searching is true until we hit another piece or the edge of the board
-            let mut searching: bool = true;
-            while searching {
+            // Sliding is true until we hit another piece or the edge of the board
+            let mut sliding: bool = true;
+            while sliding {
                 let result = board.get_offset(from_square, file_offset, rank_offset);
 
                 if let Some((new_square, Some(taken_piece))) = result {
-                    // If we hit another piece stop searching,
+                    // If we hit another piece stop sliding,
                     // if that piece is the opposite color, we can take it
                     if taken_piece.color != self.color {
                         moves.push(move_!(from_square.clone(), new_square));
                     }
-                    searching = false;
+                    sliding = false;
                 } else if let Some((new_square, None)) = result {
                     // If we find an empty square, keep sliding
                     moves.push(move_!(from_square.clone(), new_square));
@@ -108,7 +108,7 @@ impl Piece {
                     rank_offset += *rank_direction;
                 } else if let None = result {
                     // If we hit the edge of the board, stop sliding
-                    searching = false;
+                    sliding = false;
                 }
             }
         }
