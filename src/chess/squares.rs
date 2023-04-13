@@ -44,10 +44,10 @@ impl fmt::Display for Rank {
 
 #[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Square {
-    pub rank: Rank,
-    pub file: File,
-    pub file_index: usize,
-    pub rank_index: usize,
+    rank: Rank,
+    file: File,
+    file_index: usize,
+    rank_index: usize,
 }
 
 impl Square {
@@ -70,6 +70,16 @@ impl Square {
             file_index,
             rank_index,
         };
+    }
+
+    // Use getters to ensure that the values cannot be changed,
+    // violating the in-bounds guarantee of using Rank/File enums
+    pub fn get_file_index(&self) -> usize {
+        self.file_index
+    }
+
+    pub fn get_rank_index(&self) -> usize {
+        self.rank_index
     }
 }
 

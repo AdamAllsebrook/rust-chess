@@ -23,18 +23,22 @@ impl Board {
         board
     }
 
+    // Index is guaranteed to be in bounds due to the coupling between
+    // the Square/File/Rank and the Board initialisation
     pub fn get(&self, square: &Square) -> Option<&Piece> {
-        self.squares[square.file_index][square.rank_index].as_ref()
+        self.squares[square.get_file_index()][square.get_rank_index()].as_ref()
     }
 
+    // Get the square and piece some given offset from a valid square
+    // Validates that the new square is in bounds
     pub fn get_offset(
         &self,
         square: &Square,
         file_offset: i8,
         rank_offset: i8,
     ) -> Option<(Square, Option<&Piece>)> {
-        let file_index = square.file_index as i8 + file_offset;
-        let rank_index = square.rank_index as i8 + rank_offset;
+        let file_index = square.get_file_index() as i8 + file_offset;
+        let rank_index = square.get_rank_index() as i8 + rank_offset;
         if file_index < 0 || rank_index < 0 {
             return None;
         }
@@ -55,13 +59,13 @@ impl Board {
         }
     }
 
-    pub fn get_all_pieces(&self) -> Vec<(Square, Piece)> {
-        let mut pieces = Vec::<(Square, Piece)>::new();
+    pub fn get_all_pieces(&self) -> Vec<(Square, &Piece)> {
+        let mut pieces = Vec::<(Square, &Piece)>::new();
         for file in all::<File>() {
             for rank in all::<Rank>() {
                 let square = Square::new(file, rank);
                 if let Some(piece) = self.get(&square) {
-                    pieces.push((square, piece.clone()));
+                    pieces.push((square, piece));
                 }
             }
         }
