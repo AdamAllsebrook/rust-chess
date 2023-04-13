@@ -1,11 +1,22 @@
 use crate::chess::{Board, Piece, Square};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Move {
     pub from: Square,
     pub to: Square,
 }
+
+#[macro_export]
+macro_rules! move_ {
+    ($from:expr, $to:expr) => {
+        Move {
+            from: $from,
+            to: $to,
+        }
+    };
+}
+pub(crate) use move_;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Color {

@@ -6,6 +6,7 @@ pub mod pieces;
 pub mod squares;
 
 pub use board::Board;
+use game::move_;
 pub use game::{Color, Game, Move};
 use pieces::piece;
 pub use pieces::{Piece, PieceType};
