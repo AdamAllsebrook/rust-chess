@@ -37,21 +37,17 @@ impl Piece {
         };
 
         // Check if we can push the pawn forwards
-        let valid_square = board.validate_square_offset(from_square, 0, forward);
-        if let Some(new_square) = valid_square {
-            if board.get(new_square).is_none() {
-                moves.push(move_!(from_square.clone(), new_square));
-            }
+        let result = board.get_offset(from_square, 0, forward);
+        if let Some((new_square, None)) = result {
+            moves.push(move_!(from_square.clone(), new_square));
         }
 
         // Check if we can take a piece diagonally
         for file_offset in (-1..=1).step_by(2) {
-            let valid_square = board.validate_square_offset(from_square, file_offset, forward);
-            if let Some(new_square) = valid_square {
-                if let Some(taken_piece) = board.get(new_square) {
-                    if taken_piece.color != self.color {
-                        moves.push(move_!(from_square.clone(), new_square));
-                    }
+            let result = board.get_offset(from_square, file_offset, forward);
+            if let Some((new_square, Some(taken_piece))) = result {
+                if taken_piece.color != self.color {
+                    moves.push(move_!(from_square.clone(), new_square));
                 }
             }
         }
@@ -66,15 +62,14 @@ impl Piece {
                 if file_offset == 0 || rank_offset == 0 || file_offset.abs() == rank_offset.abs() {
                     continue;
                 }
-                if let Some(new_square) =
-                    board.validate_square_offset(from_square, file_offset, rank_offset)
-                {
-                    // We cannot move to a square occupied by one of our own pieces
-                    if let Some(taken_piece) = board.get(new_square) {
-                        if taken_piece.color == self.color {
-                            continue;
-                        }
+                let result = board.get_offset(from_square, file_offset, rank_offset);
+                if let Some((new_square, Some(taken_piece))) = result {
+                    // If we hit an opponent's piece, we can take it
+                    if taken_piece.color != self.color {
+                        moves.push(move_!(from_square.clone(), new_square));
                     }
+                } else if let Some((new_square, None)) = result {
+                    // Move into empty space
                     moves.push(move_!(from_square.clone(), new_square));
                 }
             }
@@ -97,23 +92,22 @@ impl Piece {
             // Searching is true until we hit another piece or the edge of the board
             let mut searching: bool = true;
             while searching {
-                if let Some(new_square) =
-                    board.validate_square_offset(from_square, file_offset, rank_offset)
-                {
+                let result = board.get_offset(from_square, file_offset, rank_offset);
+
+                if let Some((new_square, Some(taken_piece))) = result {
                     // If we hit another piece stop searching,
                     // if that piece is the opposite color, we can take it
-                    if let Some(taken_piece) = board.get(new_square) {
-                        if taken_piece.color != self.color {
-                            moves.push(move_!(from_square.clone(), new_square));
-                        }
-                        searching = false;
-                    } else {
+                    if taken_piece.color != self.color {
                         moves.push(move_!(from_square.clone(), new_square));
-                        // Check the square one step further away in the next iteration
-                        file_offset += *file_direction;
-                        rank_offset += *rank_direction;
                     }
-                } else {
+                    searching = false;
+                } else if let Some((new_square, None)) = result {
+                    // If we find an empty square, keep sliding
+                    moves.push(move_!(from_square.clone(), new_square));
+                    file_offset += *file_direction;
+                    rank_offset += *rank_direction;
+                } else if let None = result {
+                    // If we hit the edge of the board, stop sliding
                     searching = false;
                 }
             }
@@ -147,15 +141,15 @@ impl Piece {
                 if file_offset == 0 && rank_offset == 0 {
                     continue;
                 }
-                if let Some(new_square) =
-                    board.validate_square_offset(from_square, file_offset, rank_offset)
-                {
-                    // We cannot move to a square occupied by one of our own pieces
-                    if let Some(taken_piece) = board.get(new_square) {
-                        if taken_piece.color == self.color {
-                            continue;
-                        }
+
+                let result = board.get_offset(from_square, file_offset, rank_offset);
+                if let Some((new_square, Some(taken_piece))) = result {
+                    // If we hit an opponent's piece, we can take it
+                    if taken_piece.color != self.color {
+                        moves.push(move_!(from_square.clone(), new_square));
                     }
+                } else if let Some((new_square, None)) = result {
+                    // Move into empty space
                     moves.push(move_!(from_square.clone(), new_square));
                 }
             }
