@@ -64,12 +64,12 @@ impl Square {
         if file_index >= cardinality::<File>() || rank_index >= cardinality::<Rank>() {
             panic!("Tried to create a Square with an out of bounds index")
         }
-        return Square {
+        Square {
             file: all::<File>().collect::<Vec<_>>()[file_index],
             rank: all::<Rank>().collect::<Vec<_>>()[rank_index],
             file_index,
             rank_index,
-        };
+        }
     }
 
     // Use getters to ensure that the values cannot be changed,

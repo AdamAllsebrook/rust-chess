@@ -16,7 +16,7 @@ impl Board {
             for (j, rank) in all::<Rank>().enumerate() {
                 let square = Square::new(file, rank);
                 if let Some(piece) = starting_position.get(&square) {
-                    board.squares[i][j] = Some(piece.clone());
+                    board.squares[i][j] = Some(*piece);
                 }
             }
         }
@@ -51,11 +51,7 @@ impl Board {
             return None;
         }
         let square = self.validate_square(file_index as usize, rank_index as usize);
-        if let Some(square) = square {
-            Some((square, self.get(&square)))
-        } else {
-            None
-        }
+        square.map(|square| (square, self.get(&square)))
     }
 
     // Check if a square index is without the bounds of the board

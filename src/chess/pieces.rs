@@ -39,7 +39,7 @@ impl Piece {
         // Check if we can push the pawn forwards
         let result = board.get_offset(from_square, 0, forward);
         if let Some((new_square, None)) = result {
-            moves.push(move_!(from_square.clone(), new_square));
+            moves.push(move_!(*from_square, new_square));
         }
 
         // Check if we can take a piece diagonally
@@ -47,7 +47,7 @@ impl Piece {
             let result = board.get_offset(from_square, file_offset, forward);
             if let Some((new_square, Some(taken_piece))) = result {
                 if taken_piece.color != self.color {
-                    moves.push(move_!(from_square.clone(), new_square));
+                    moves.push(move_!(*from_square, new_square));
                 }
             }
         }
@@ -66,11 +66,11 @@ impl Piece {
                 if let Some((new_square, Some(taken_piece))) = result {
                     // If we hit an opponent's piece, we can take it
                     if taken_piece.color != self.color {
-                        moves.push(move_!(from_square.clone(), new_square));
+                        moves.push(move_!(*from_square, new_square));
                     }
                 } else if let Some((new_square, None)) = result {
                     // Move into empty space
-                    moves.push(move_!(from_square.clone(), new_square));
+                    moves.push(move_!(*from_square, new_square));
                 }
             }
         }
@@ -98,15 +98,15 @@ impl Piece {
                     // If we hit another piece stop sliding,
                     // if that piece is the opposite color, we can take it
                     if taken_piece.color != self.color {
-                        moves.push(move_!(from_square.clone(), new_square));
+                        moves.push(move_!(*from_square, new_square));
                     }
                     sliding = false;
                 } else if let Some((new_square, None)) = result {
                     // If we find an empty square, keep sliding
-                    moves.push(move_!(from_square.clone(), new_square));
+                    moves.push(move_!(*from_square, new_square));
                     file_offset += *file_direction;
                     rank_offset += *rank_direction;
-                } else if let None = result {
+                } else if result.is_none() {
                     // If we hit the edge of the board, stop sliding
                     sliding = false;
                 }
@@ -146,11 +146,11 @@ impl Piece {
                 if let Some((new_square, Some(taken_piece))) = result {
                     // If we hit an opponent's piece, we can take it
                     if taken_piece.color != self.color {
-                        moves.push(move_!(from_square.clone(), new_square));
+                        moves.push(move_!(*from_square, new_square));
                     }
                 } else if let Some((new_square, None)) = result {
                     // Move into empty space
-                    moves.push(move_!(from_square.clone(), new_square));
+                    moves.push(move_!(*from_square, new_square));
                 }
             }
         }
