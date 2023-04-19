@@ -83,6 +83,7 @@ impl Square {
     }
 }
 
+// Use getters for file and rank indices to keep the index-in-bounds safety of using enums
 impl fmt::Display for Square {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}{}", self.file, self.rank)

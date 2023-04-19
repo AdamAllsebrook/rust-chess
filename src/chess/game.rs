@@ -25,8 +25,8 @@ pub enum Color {
 }
 
 pub struct Game {
-    board: Board,
-    turn: Color,
+    pub board: Board,
+    pub turn: Color,
 }
 
 impl Game {

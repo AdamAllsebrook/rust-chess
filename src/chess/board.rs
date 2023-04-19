@@ -23,6 +23,14 @@ impl Board {
         board
     }
 
+    pub fn get_width(&self) -> usize {
+        self.squares[0].len()
+    }
+
+    pub fn get_height(&self) -> usize {
+        self.squares.len()
+    }
+
     // Index is guaranteed to be in bounds due to the coupling between
     // the Square/File/Rank and the Board initialisation
     pub fn get(&self, square: &Square) -> Option<&Piece> {

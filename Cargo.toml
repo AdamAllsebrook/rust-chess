@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 enum-iterator = "1.4.0"
+crossterm = "0.26"
+ratatui = "0.20"

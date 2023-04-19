@@ -1,4 +1,5 @@
 mod chess;
+mod display;
 
 fn main() {
     let game = chess::Game::new(chess::generate_starting_position());
@@ -6,4 +7,5 @@ fn main() {
     for move_ in moves {
         println!("{} to {}", move_.from, move_.to);
     }
+    display::display(&game);
 }
