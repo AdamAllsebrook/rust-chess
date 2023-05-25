@@ -63,16 +63,22 @@ impl Board {
         }
     }
 
-    pub fn get_all_pieces(&self) -> Vec<(Square, &Piece)> {
-        let mut pieces = Vec::<(Square, &Piece)>::new();
+    pub fn get_all_squares(&self) -> Vec<(Square, Option<&Piece>)> {
+        let mut pieces = Vec::new();
         for file in all::<File>() {
             for rank in all::<Rank>() {
                 let square = Square::new(file, rank);
-                if let Some(piece) = self.get(&square) {
-                    pieces.push((square, piece));
-                }
+                pieces.push((square, self.get(&square)));
             }
         }
         pieces
+    }
+
+    pub fn get_all_pieces(&self) -> Vec<(Square, &Piece)> {
+        self.get_all_squares()
+            .iter()
+            .filter(|(_, piece)| piece.is_some())
+            .map(|(square, piece)| (*square, piece.unwrap()))
+            .collect()
     }
 }

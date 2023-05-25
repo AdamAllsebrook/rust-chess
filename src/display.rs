@@ -1,91 +1,80 @@
+use cursive::{
+    theme::{
+        BaseColor::*, BorderStyle, Color::*, ColorStyle, Palette, PaletteColor, PaletteColor::*,
+        Style, Theme,
+    },
+    views::{Button, Dialog, EditView, FixedLayout, LinearLayout, TextView},
+    Cursive, CursiveExt, Rect,
+};
+
 use crate::chess;
-use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use ratatui::style::Color;
-use ratatui::{
-    backend::{Backend, CrosstermBackend},
-    layout::{Constraint, Direction, Layout},
-    style::Style,
-    widgets::{Block, Borders, Cell, Row, Table},
-    Frame, Terminal,
-};
-use std::{io, thread, time::Duration};
 
-pub fn display(game: &chess::Game) -> Result<(), io::Error> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+pub fn run(game: &chess::Game) {
+    let mut siv = Cursive::new();
+    siv.set_theme(generate_theme());
 
-    terminal.draw(|f| {
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .margin(1)
-            .constraints(
-                [
-                    Constraint::Percentage(10),
-                    Constraint::Percentage(80),
-                    Constraint::Percentage(10),
-                ]
-                .as_ref(),
-            )
-            .split(f.size());
+    let move_input = Dialog::new()
+        .title(format!("{} to move", game.turn))
+        .content(EditView::new());
+    let quit_button = Button::new("Quit", |s| s.quit());
+    let board_layout = Dialog::new().title("Board").content(get_board_layout(game));
 
-        draw_board(f, game, chunks[1]);
-    })?;
+    let layout = LinearLayout::vertical()
+        .child(board_layout)
+        .child(move_input)
+        .child(quit_button);
 
-    thread::sleep(Duration::from_millis(5000));
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
-
-    Ok(())
+    siv.add_layer(layout);
+    siv.run();
 }
 
-pub fn draw_board<B: Backend>(f: &mut Frame<B>, game: &chess::Game, area: ratatui::layout::Rect) {
-    let size = 1;
-    // idk why it has to be size * 2
-    let widths = vec![Constraint::Length(size * 2); 8];
+fn generate_theme() -> Theme {
+    let mut palette = Palette::default();
+    let colors = vec![
+        (Background, Dark(Black)),
+        (Highlight, Dark(Blue)),
+        (HighlightInactive, Dark(Yellow)),
+        (TitlePrimary, Dark(Black)),
+    ];
+    palette.extend(colors);
+    Theme {
+        shadow: false,
+        borders: BorderStyle::Simple,
+        palette,
+    }
+}
 
-    let light_square = Style::default().bg(Color::Yellow);
-    let dark_square = Style::default().bg(Color::Blue);
-    let rows = (0..game.board.get_height()).map(|i| {
-        Row::new((0..game.board.get_width()).map(|j| {
-            Cell::from(String::from(get_piece_unicode(game.board.get(
-                &chess::Square::from_index(
-                    j,
-                    if game.turn == chess::Color::White {
-                        game.board.get_height() - i - 1
-                    } else {
-                        i
-                    },
-                ),
-            ))))
-            .style(if i & 1 == j & 1 {
-                light_square
-            } else {
-                dark_square
-            })
-        }))
-        .height(size)
-    });
+fn get_board_layout(game: &chess::Game) -> FixedLayout {
+    let mut board_layout = FixedLayout::new();
+    let light_square = Style::from(ColorStyle::new(
+        PaletteColor::Primary,
+        PaletteColor::HighlightInactive,
+    ));
+    let dark_square = Style::from(ColorStyle::new(
+        PaletteColor::Primary,
+        PaletteColor::Highlight,
+    ));
 
-    let table = Table::new(rows)
-        .style(Style::default().fg(Color::Black))
-        .block(Block::default().title("Board").borders(Borders::ALL))
-        .widths(&widths)
-        .column_spacing(0);
-    f.render_widget(table, area);
+    for (square, piece) in game.board.get_all_squares() {
+        // double width to make squares
+        let x = square.get_file_index() * 2;
+        let y = if game.turn == chess::Color::White {
+            game.board.get_height() - square.get_rank_index() - 1
+        } else {
+            square.get_rank_index()
+        };
+        let rect = Rect::from_size((x, y), (2, 1));
+
+        let color = if square.is_light_square() {
+            light_square
+        } else {
+            dark_square
+        };
+
+        let text = format!("{} ", get_piece_unicode(piece));
+        board_layout.add_child(rect, TextView::new(text).style(color));
+    }
+    board_layout
 }
 
 const fn get_piece_unicode(piece: Option<&chess::Piece>) -> char {

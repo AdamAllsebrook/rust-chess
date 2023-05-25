@@ -24,6 +24,16 @@ pub enum Color {
     Black,
 }
 
+impl std::fmt::Display for Color {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let color = match self {
+            Color::White => "White",
+            Color::Black => "Black",
+        };
+        write!(f, "{}", color)
+    }
+}
+
 pub struct Game {
     pub board: Board,
     pub turn: Color,

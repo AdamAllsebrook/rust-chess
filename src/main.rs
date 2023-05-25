@@ -7,5 +7,5 @@ fn main() {
     for move_ in moves {
         println!("{} to {}", move_.from, move_.to);
     }
-    display::display(&game);
+    display::run(&game);
 }

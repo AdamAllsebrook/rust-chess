@@ -16,6 +16,16 @@ pub struct Piece {
     pub color: Color,
 }
 
+// Could this be better?
+// pub enum Piece2 {
+//     Pawn(Color),
+//     Knight(Color),
+//     Bishop(Color),
+//     Rook(Color),
+//     Queen(Color),
+//     King(Color),
+// }
+
 impl Piece {
     pub fn get_moves(&self, board: &Board, from_square: &Square) -> Vec<Move> {
         match self.piece_type {

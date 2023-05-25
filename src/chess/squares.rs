@@ -81,6 +81,10 @@ impl Square {
     pub fn get_rank_index(&self) -> usize {
         self.rank_index
     }
+
+    pub fn is_light_square(&self) -> bool {
+        (self.file_index + self.rank_index) % 2 == 0
+    }
 }
 
 // Use getters for file and rank indices to keep the index-in-bounds safety of using enums
