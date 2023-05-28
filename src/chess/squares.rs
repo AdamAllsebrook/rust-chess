@@ -96,7 +96,7 @@ impl fmt::Display for Square {
 
 #[macro_export]
 macro_rules! square {
-    ($file:ident, $rank_num:literal) => {
+    ($file:ident $rank_num:literal) => {
         Square::new(
             File::$file,
             match ($rank_num) {
