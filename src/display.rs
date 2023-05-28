@@ -1,4 +1,7 @@
+use std::rc::Rc;
+
 use cursive::{
+    immut2,
     theme::{
         BaseColor::*, BorderStyle, Color::*, ColorStyle, Palette, PaletteColor, PaletteColor::*,
         Style, Theme,
@@ -9,23 +12,32 @@ use cursive::{
 
 use crate::chess;
 
-pub fn run(game: &chess::Game) {
-    let mut siv = Cursive::new();
-    siv.set_theme(generate_theme());
+pub struct TerminalInterface {
+    siv: Cursive,
+}
 
-    let move_input = Dialog::new()
-        .title(format!("{} to move", game.turn))
-        .content(EditView::new());
-    let quit_button = Button::new("Quit", |s| s.quit());
-    let board_layout = Dialog::new().title("Board").content(get_board_layout(game));
+impl TerminalInterface {
+    fn new() -> Self {
+        let mut siv = Cursive::new();
+        siv.set_theme(generate_theme());
+        Self { siv }
+    }
 
-    let layout = LinearLayout::vertical()
-        .child(board_layout)
-        .child(move_input)
-        .child(quit_button);
+    fn play_game(&mut self, game: Rc<chess::Game>) {
+        let move_input = Dialog::new()
+            .title(format!("{} to move", game.turn))
+            .content(EditView::new().on_submit(|s, input| game.send_input(input)));
+        let quit_button = Button::new("Quit", |s| s.quit());
+        let board_layout = get_board_layout(&game);
 
-    siv.add_layer(layout);
-    siv.run();
+        let layout = LinearLayout::vertical()
+            .child(board_layout)
+            .child(move_input)
+            .child(quit_button);
+
+        self.siv.add_layer(layout);
+        self.siv.run();
+    }
 }
 
 fn generate_theme() -> Theme {
@@ -44,7 +56,7 @@ fn generate_theme() -> Theme {
     }
 }
 
-fn get_board_layout(game: &chess::Game) -> FixedLayout {
+fn get_board_layout(game: &Rc<chess::Game>) -> FixedLayout {
     let mut board_layout = FixedLayout::new();
     let light_square = Style::from(ColorStyle::new(
         PaletteColor::Primary,

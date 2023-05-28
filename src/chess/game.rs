@@ -47,6 +47,10 @@ impl Game {
         }
     }
 
+    pub fn send_input(&self, input: &str) {
+        println!("Input: {}", input);
+    }
+
     // Get all possible moves for every piece for the current player,
     // ignoring the state of the board after the move
     pub fn get_all_possible_moves(&self) -> Vec<Move> {
