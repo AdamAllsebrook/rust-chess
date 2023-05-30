@@ -9,5 +9,5 @@ fn main() {
     for move_ in moves {
         println!("{} to {}", move_.from, move_.to);
     }
-    display::run(game);
+    let tui = display::TerminalInterface::new();
 }

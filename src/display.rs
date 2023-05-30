@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use cursive::{
-    immut2,
     theme::{
         BaseColor::*, BorderStyle, Color::*, ColorStyle, Palette, PaletteColor, PaletteColor::*,
         Style, Theme,
@@ -17,16 +16,15 @@ pub struct TerminalInterface {
 }
 
 impl TerminalInterface {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let mut siv = Cursive::new();
         siv.set_theme(generate_theme());
         Self { siv }
     }
 
-    fn play_game(&mut self, game: Rc<chess::Game>) {
-        let move_input = Dialog::new()
-            .title(format!("{} to move", game.turn))
-            .content(EditView::new().on_submit(|s, input| game.send_input(input)));
+    pub fn play_game(&mut self, game: Rc<chess::Game>) {
+        let move_input = Dialog::new().title(format!("{} to move", game.turn));
+        // .content(EditView::new().on_submit(|s, input| game.send_input(input)));
         let quit_button = Button::new("Quit", |s| s.quit());
         let board_layout = get_board_layout(&game);
 
