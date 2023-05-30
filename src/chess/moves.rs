@@ -1,17 +1,20 @@
 use super::{File, PieceType, Rank, Square};
 
+#[derive(PartialEq, Eq)]
 enum CastleType {
     Short,
     Long,
 }
 
+#[derive(PartialEq, Eq)]
 enum Disambiguation {
     File(File),
     Rank(Rank),
     Square(Square),
 }
 
-enum BaseMove {
+#[derive(PartialEq, Eq)]
+enum MoveType {
     Normal {
         from: Option<Disambiguation>,
         to: Square,
@@ -21,10 +24,6 @@ enum BaseMove {
         from: Option<Disambiguation>,
         to: Square,
         piece: PieceType,
-    },
-    EnPassant {
-        from: File,
-        to: Square,
     },
     Castle(CastleType),
     Promotion {
@@ -38,22 +37,159 @@ enum BaseMove {
     },
 }
 
-enum Move {
-    Move(BaseMove),
-    Check(BaseMove),
-    Checkmate(BaseMove),
+#[derive(PartialEq, Eq)]
+enum GameResult {
+    WhiteWins,
+    BlackWins,
     Draw,
 }
 
 #[derive(PartialEq, Eq)]
+enum Move {
+    NoCheck(MoveType),
+    Check(MoveType),
+    Checkmate(MoveType),
+    DrawOffer,
+    EndOfGame(GameResult),
+}
+
+enum InputPart {
+    Piece(PieceType),
+    File(File),
+    Rank(Rank),
+    Capture,
+    Promotion,
+    Check,
+    Checkmate,
+}
+
 #[derive(PartialEq, Eq)]
 enum MoveParseError {
     NotAMove,
 }
 
 impl Move {
-    fn parse(input: &str) -> Result<Self, String> {
-        Err(String::from("..."))
+    fn parse(input: &str) -> Result<Self, MoveParseError> {
+        match input {
+            "O-O" => Ok(Move::NoCheck(MoveType::Castle(CastleType::Short))),
+            "O-O-O" => Ok(Move::NoCheck(MoveType::Castle(CastleType::Long))),
+            "(=)" => Ok(Move::DrawOffer),
+            "1-0" => Ok(Move::EndOfGame(GameResult::WhiteWins)),
+            "0-1" => Ok(Move::EndOfGame(GameResult::BlackWins)),
+            "1/2-1/2" => Ok(Move::EndOfGame(GameResult::Draw)),
+            _ => match Move::tokenize(input) {
+                Ok(input_parts) => match input_parts.last() {
+                    Some(InputPart::Check) => {
+                        Move::parse_move_type(&input_parts[..input_parts.len() - 1])
+                            .map(Move::Check)
+                    }
+                    Some(InputPart::Checkmate) => {
+                        Move::parse_move_type(&input_parts[..input_parts.len() - 1])
+                            .map(Move::Checkmate)
+                    }
+                    _ => Move::parse_move_type(&input_parts).map(Move::NoCheck),
+                },
+                Err(e) => Err(e),
+            },
+        }
+    }
+    fn parse_move_type(input_parts: &[InputPart]) -> Result<MoveType, MoveParseError> {
+        use InputPart::*;
+        match input_parts[..] {
+            [File(file), Rank(rank)] => Ok(MoveType::Normal {
+                from: None,
+                to: Square::new(file, rank),
+                piece: PieceType::Pawn,
+            }),
+            [Piece(piece), File(file), Rank(rank)] => Ok(MoveType::Normal {
+                from: None,
+                to: Square::new(file, rank),
+                piece,
+            }),
+            [Piece(piece), File(from_file), File(file), Rank(rank)] => Ok(MoveType::Normal {
+                from: Some(Disambiguation::File(from_file)),
+                to: Square::new(file, rank),
+                piece,
+            }),
+            [Piece(piece), Rank(from_rank), File(file), Rank(rank)] => Ok(MoveType::Normal {
+                from: Some(Disambiguation::Rank(from_rank)),
+                to: Square::new(file, rank),
+                piece,
+            }),
+            [Piece(piece), File(from_file), Rank(from_rank), File(file), Rank(rank)] => {
+                Ok(MoveType::Normal {
+                    from: Some(Disambiguation::Square(Square::new(from_file, from_rank))),
+                    to: Square::new(file, rank),
+                    piece,
+                })
+            }
+            [Piece(piece), Capture, File(file), Rank(rank)] => Ok(MoveType::Capture {
+                from: None,
+                to: Square::new(file, rank),
+                piece,
+            }),
+            [Piece(piece), File(from_file), Capture, File(file), Rank(rank)] => {
+                Ok(MoveType::Capture {
+                    from: Some(Disambiguation::File(from_file)),
+                    to: Square::new(file, rank),
+                    piece,
+                })
+            }
+            [Piece(piece), Rank(from_rank), Capture, File(file), Rank(rank)] => {
+                Ok(MoveType::Capture {
+                    from: Some(Disambiguation::Rank(from_rank)),
+                    to: Square::new(file, rank),
+                    piece,
+                })
+            }
+            [Piece(piece), File(from_file), Rank(from_rank), Capture, File(file), Rank(rank)] => {
+                Ok(MoveType::Capture {
+                    from: Some(Disambiguation::Square(Square::new(from_file, from_rank))),
+                    to: Square::new(file, rank),
+                    piece,
+                })
+            }
+            [File(from_file), Capture, File(file), Rank(rank)] => Ok(MoveType::Capture {
+                from: Some(Disambiguation::File(from_file)),
+                to: Square::new(file, rank),
+                piece: PieceType::Pawn,
+            }),
+            [File(file), Rank(rank), Promotion, Piece(promote_to)] => Ok(MoveType::Promotion {
+                to: Square::new(file, rank),
+                promote_to,
+            }),
+            [File(from_file), Capture, File(file), Rank(rank), Promotion, Piece(promote_to)] => {
+                Ok(MoveType::PromotionCapture {
+                    from: from_file,
+                    to: Square::new(file, rank),
+                    promote_to,
+                })
+            }
+            _ => Err(MoveParseError::NotAMove),
+        }
+    }
+
+    fn tokenize(input: &str) -> Result<Vec<InputPart>, MoveParseError> {
+        input
+            .chars()
+            .map(|c| match c {
+                'x' => Ok(InputPart::Capture),
+                '=' => Ok(InputPart::Promotion),
+                '+' => Ok(InputPart::Check),
+                '#' => Ok(InputPart::Checkmate),
+                _ => {
+                    if let Some(piece) = PieceType::from_char(c) {
+                        Ok(InputPart::Piece(piece))
+                    } else if let Some(file) = File::from_char(c) {
+                        Ok(InputPart::File(file))
+                    } else if let Some(rank) = Rank::from_char(c) {
+                        Ok(InputPart::Rank(rank))
+                    } else {
+                        Err(MoveParseError::NotAMove)
+                    }
+                }
+            })
+            .collect()
     }
 }
 
