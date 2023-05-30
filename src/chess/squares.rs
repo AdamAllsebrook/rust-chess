@@ -20,6 +20,22 @@ impl fmt::Display for File {
     }
 }
 
+impl File {
+    pub fn from_char(c: char) -> Option<File> {
+        match c {
+            'a' => Some(File::A),
+            'b' => Some(File::B),
+            'c' => Some(File::C),
+            'd' => Some(File::D),
+            'e' => Some(File::E),
+            'f' => Some(File::F),
+            'g' => Some(File::G),
+            'h' => Some(File::H),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Sequence, Hash, Eq, PartialEq, Copy, Clone)]
 pub enum Rank {
     One,
@@ -39,6 +55,22 @@ impl fmt::Display for Rank {
             "{:?}",
             all::<Rank>().position(|r| r == *self).unwrap() + 1
         )
+    }
+}
+
+impl Rank {
+    pub fn from_char(c: char) -> Option<Rank> {
+        match c {
+            '1' => Some(Rank::One),
+            '2' => Some(Rank::Two),
+            '3' => Some(Rank::Three),
+            '4' => Some(Rank::Four),
+            '5' => Some(Rank::Five),
+            '6' => Some(Rank::Six),
+            '7' => Some(Rank::Seven),
+            '8' => Some(Rank::Eight),
+            _ => None,
+        }
     }
 }
 

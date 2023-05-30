@@ -1,6 +1,6 @@
 use crate::chess::{move_, Board, Color, Move, Square};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum PieceType {
     Pawn,
     Knight,
@@ -8,6 +8,19 @@ pub enum PieceType {
     Rook,
     Queen,
     King,
+}
+
+impl PieceType {
+    pub fn from_char(c: char) -> Option<PieceType> {
+        match c {
+            'N' => Some(PieceType::Knight),
+            'B' => Some(PieceType::Bishop),
+            'R' => Some(PieceType::Rook),
+            'Q' => Some(PieceType::Queen),
+            'K' => Some(PieceType::King),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
