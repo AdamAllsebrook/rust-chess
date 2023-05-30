@@ -53,7 +53,8 @@ enum Move {
     EndOfGame(GameResult),
 }
 
-enum InputPart {
+// A symbol for one character of the input
+enum InputToken {
     Piece(PieceType),
     File(File),
     Rank(Rank),
@@ -77,24 +78,25 @@ impl Move {
             "1-0" => Ok(Move::EndOfGame(GameResult::WhiteWins)),
             "0-1" => Ok(Move::EndOfGame(GameResult::BlackWins)),
             "1/2-1/2" => Ok(Move::EndOfGame(GameResult::Draw)),
+
             _ => match Move::tokenize(input) {
-                Ok(input_parts) => match input_parts.last() {
-                    Some(InputPart::Check) => {
-                        Move::parse_move_type(&input_parts[..input_parts.len() - 1])
+                Ok(input_tokens) => match input_tokens.last() {
+                    Some(InputToken::Check) => {
+                        Move::parse_move_type(&input_tokens[..input_tokens.len() - 1])
                             .map(Move::Check)
                     }
-                    Some(InputPart::Checkmate) => {
-                        Move::parse_move_type(&input_parts[..input_parts.len() - 1])
+                    Some(InputToken::Checkmate) => {
+                        Move::parse_move_type(&input_tokens[..input_tokens.len() - 1])
                             .map(Move::Checkmate)
                     }
-                    _ => Move::parse_move_type(&input_parts).map(Move::NoCheck),
+                    _ => Move::parse_move_type(&input_tokens).map(Move::NoCheck),
                 },
                 Err(e) => Err(e),
             },
         }
     }
-    fn parse_move_type(input_parts: &[InputPart]) -> Result<MoveType, MoveParseError> {
-        use InputPart::*;
+    fn parse_move_type(input_parts: &[InputToken]) -> Result<MoveType, MoveParseError> {
+        use InputToken::*;
         match input_parts[..] {
             [File(file), Rank(rank)] => Ok(MoveType::Normal {
                 from: None,
@@ -169,21 +171,21 @@ impl Move {
         }
     }
 
-    fn tokenize(input: &str) -> Result<Vec<InputPart>, MoveParseError> {
+    fn tokenize(input: &str) -> Result<Vec<InputToken>, MoveParseError> {
         input
             .chars()
             .map(|c| match c {
-                'x' => Ok(InputPart::Capture),
-                '=' => Ok(InputPart::Promotion),
-                '+' => Ok(InputPart::Check),
-                '#' => Ok(InputPart::Checkmate),
+                'x' => Ok(InputToken::Capture),
+                '=' => Ok(InputToken::Promotion),
+                '+' => Ok(InputToken::Check),
+                '#' => Ok(InputToken::Checkmate),
                 _ => {
                     if let Some(piece) = PieceType::from_char(c) {
-                        Ok(InputPart::Piece(piece))
+                        Ok(InputToken::Piece(piece))
                     } else if let Some(file) = File::from_char(c) {
-                        Ok(InputPart::File(file))
+                        Ok(InputToken::File(file))
                     } else if let Some(rank) = Rank::from_char(c) {
-                        Ok(InputPart::Rank(rank))
+                        Ok(InputToken::Rank(rank))
                     } else {
                         Err(MoveParseError::NotAMove)
                     }
