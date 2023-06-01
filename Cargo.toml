@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 enum-iterator = "1.4.0"
-cursive = { version = "0.20", features = ["toml"] }
