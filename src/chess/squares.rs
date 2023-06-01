@@ -34,6 +34,33 @@ impl File {
             _ => None,
         }
     }
+
+    pub fn from_index(i: usize) -> Option<File> {
+        match i {
+            0 => Some(File::A),
+            1 => Some(File::B),
+            2 => Some(File::C),
+            3 => Some(File::D),
+            4 => Some(File::E),
+            5 => Some(File::F),
+            6 => Some(File::G),
+            7 => Some(File::H),
+            _ => None,
+        }
+    }
+
+    pub fn to_char(&self) -> char {
+        match self {
+            File::A => 'a',
+            File::B => 'b',
+            File::C => 'c',
+            File::D => 'd',
+            File::E => 'e',
+            File::F => 'f',
+            File::G => 'g',
+            File::H => 'h',
+        }
+    }
 }
 
 #[derive(Debug, Sequence, Hash, Eq, PartialEq, Copy, Clone)]
