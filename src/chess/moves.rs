@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::{File, PieceType, Rank, Square};
 
 #[derive(PartialEq, Eq)]
@@ -67,6 +69,17 @@ enum InputToken {
 #[derive(PartialEq, Eq)]
 enum MoveParseError {
     NotAMove,
+    InvalidCharacter(usize, char),
+}
+
+impl fmt::Display for MoveParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use MoveParseError::*;
+        match self {
+            NotAMove => write!(f, "Invalid move"),
+            InvalidCharacter(i, c) => write!(f, "Invalid character {} at position {}", c, i),
+        }
+    }
 }
 
 impl Move {
@@ -174,7 +187,8 @@ impl Move {
     fn tokenize(input: &str) -> Result<Vec<InputToken>, MoveParseError> {
         input
             .chars()
-            .map(|c| match c {
+            .enumerate()
+            .map(|(i, c)| match c {
                 'x' => Ok(InputToken::Capture),
                 '=' => Ok(InputToken::Promotion),
                 '+' => Ok(InputToken::Check),
@@ -187,7 +201,7 @@ impl Move {
                     } else if let Some(rank) = Rank::from_char(c) {
                         Ok(InputToken::Rank(rank))
                     } else {
-                        Err(MoveParseError::NotAMove)
+                        Err(MoveParseError::InvalidCharacter(i, c))
                     }
                 }
             })
@@ -417,18 +431,18 @@ mod tests {
     #[test]
     fn invalid_move() {
         let parsed = Move::parse("invalid");
-        assert!(parsed == Err(MoveParseError::NotAMove))
+        assert!(parsed == Err(MoveParseError::InvalidCharacter(0, 'i')))
     }
 
     #[test]
     fn not_a_square() {
         let parsed = Move::parse("Qh9");
-        assert!(parsed == Err(MoveParseError::NotAMove))
+        assert!(parsed == Err(MoveParseError::InvalidCharacter(2, '9')))
     }
 
     #[test]
     fn not_a_piece() {
         let parsed = Move::parse("Jf3");
-        assert!(parsed == Err(MoveParseError::NotAMove))
+        assert!(parsed == Err(MoveParseError::InvalidCharacter(0, 'J')))
     }
 }
