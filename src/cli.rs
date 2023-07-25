@@ -29,8 +29,15 @@ impl Cli {
         loop {
             match self.players.get(&self.game.turn) {
                 Some(Player::Human) => {
-                    let input = self.get_player_input();
-                    self.game.send_input(&input);
+                    let move_input = loop {
+                        let raw_input = self.get_player_input();
+                        let parsed_input = chess::Move::parse(&raw_input);
+                        match parsed_input {
+                            Ok(move_input) => break move_input,
+                            Err(e) => println!("Input Error! {}", e),
+                        }
+                    };
+                    self.game.do_move(move_input);
                 }
                 Some(Player::Computer) => (),
                 None => panic!("No player found for color {}", self.game.turn),

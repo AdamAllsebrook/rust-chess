@@ -8,7 +8,8 @@ pub mod squares;
 
 pub use board::Board;
 use game::move_;
-pub use game::{Color, Game, Move};
+pub use game::{Color, Game};
+pub use moves::Move;
 use pieces::piece;
 pub use pieces::{Piece, PieceType};
 use squares::square;

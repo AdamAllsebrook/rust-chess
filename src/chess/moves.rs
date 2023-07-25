@@ -3,20 +3,20 @@ use std::fmt;
 use super::{File, PieceType, Rank, Square};
 
 #[derive(PartialEq, Eq)]
-enum CastleType {
+pub enum CastleType {
     Short,
     Long,
 }
 
 #[derive(PartialEq, Eq)]
-enum Disambiguation {
+pub enum Disambiguation {
     File(File),
     Rank(Rank),
     Square(Square),
 }
 
 #[derive(PartialEq, Eq)]
-enum MoveType {
+pub enum MoveType {
     Normal {
         from: Option<Disambiguation>,
         to: Square,
@@ -40,14 +40,14 @@ enum MoveType {
 }
 
 #[derive(PartialEq, Eq)]
-enum GameResult {
+pub enum GameResult {
     WhiteWins,
     BlackWins,
     Draw,
 }
 
 #[derive(PartialEq, Eq)]
-enum Move {
+pub enum Move {
     NoCheck(MoveType),
     Check(MoveType),
     Checkmate(MoveType),
@@ -67,7 +67,7 @@ enum InputToken {
 }
 
 #[derive(PartialEq, Eq)]
-enum MoveParseError {
+pub enum MoveParseError {
     NotAMove,
     InvalidCharacter(usize, char),
 }
@@ -83,7 +83,8 @@ impl fmt::Display for MoveParseError {
 }
 
 impl Move {
-    fn parse(input: &str) -> Result<Self, MoveParseError> {
+    pub fn parse(input: &str) -> Result<Self, MoveParseError> {
+        let input = input.trim_end_matches('\n');
         match input {
             "O-O" => Ok(Move::NoCheck(MoveType::Castle(CastleType::Short))),
             "O-O-O" => Ok(Move::NoCheck(MoveType::Castle(CastleType::Long))),
